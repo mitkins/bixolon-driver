@@ -4,7 +4,7 @@ ext {
     bintrayRepo = 'maven'
     bintrayName = 'bixolon-driver'
 
-    publishedGroupId = 'hr.istratech.bixolon'
+    publishedGroupId = 'hr.istratech'
     libraryName = 'bixolon-driver'
     artifact = 'bixolon-driver'
 
