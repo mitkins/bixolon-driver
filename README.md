@@ -16,16 +16,15 @@ I suggest you run the **integration test** while the printer is on to confirm th
 
 ```java
 
-    final Printer printer = PrinterBuilder
-                    .aPrinterBuilder()
-                    .withCodePage( CodePage.CP_437_USA )
-                    .withControlSequence( Alignment.LEFT )
-                    .withControlSequence( CharacterSize.NORMAL )
-                    .withControlSequence( DeviceFont.DEVICE_FONT_A )
-                    .buildTextPrinter();
-            
-    // you need to setup bluetoothSPP
-    bluetoothSPP.send( printer.print( "This is some text!" ), false );
+    final Printer printer = TextPrinterBuilder
+            .aPrinterBuilder()
+            .withCodePage( CodePage.CP_437_USA )
+            .withGeneralControlSequence( Alignment.LEFT )
+            .withTextControlSequence( CharacterSize.NORMAL )
+            .withTextControlSequence( DeviceFont.DEVICE_FONT_A )
+            .buildPrinter( textTextContent.toString() );
+    
+    bluetoothSPP.send( printer.getCommand(), false );
     
 ```
 
@@ -33,6 +32,15 @@ I suggest you run the **integration test** while the printer is on to confirm th
 
 ```java
 
+    final Printer printer = QrPrinterBuilder
+            .aPrinterBuilder()
+            .withGeneralControlSequence( Alignment.CENTER )
+            .withQrControlSequence( QrCodeModel.MODEL2 )
+            .withQrControlSequence( QrCodeSize.SIZE7 )
+            .withQrControlSequence( QrCodeErrorCorrectionLevel.L )
+            .buildPrinter( qrTextContent.toString() );
+    
+    bluetoothSPP.send( printer.getCommand(), false );
     
 ```
 
@@ -40,6 +48,11 @@ I suggest you run the **integration test** while the printer is on to confirm th
 
 ```java
 
+    bluetoothSPP.setOnDataReceivedListener( new BluetoothSPP.OnDataReceivedListener() {
+        public void onDataReceived( byte[] data, String message ) {
+            // Do something when data incoming
+        }
+    } );
     
 ```
 
@@ -47,6 +60,26 @@ I suggest you run the **integration test** while the printer is on to confirm th
 
 ```java
 
+    final Printer textLeftPrinter = TextPrinterBuilder
+            .aPrinterBuilder()
+            .withGeneralControlSequence( Alignment.LEFT )
+            .buildPrinter( "test" );
+    
+    final Printer qrPrinter = QrPrinterBuilder
+            .aPrinterBuilder()
+            .withQrControlSequence( QrCodeModel.MODEL2 )
+            .withQrControlSequence( QrCodeSize.SIZE7 )
+            .withQrControlSequence( QrCodeErrorCorrectionLevel.L )
+            .buildPrinter( "223175087923687075112234402528973166755123456781508151013321" );
+    
+    // it composes
+    final Printer combinedPrinter = TextPrinterBuilder
+            .aPrinterBuilder()
+            .withControlSequences( textLeftPrinter )
+            .withControlSequences( qrPrinter )
+            .buildPrinter( "test" );
+    
+    bluetoothSPP.send( combinedPrinter.getCommand(), false );
     
 ```
 
