@@ -3,6 +3,11 @@
 Bixolon's driver for Android *bluetooth* communication **done right**. 
 The core of the driver are pure functions/values, which enables *nice composition of actions*.
   
+Gradle (recommended):
+
+    compile 'hr.istratech:bixolon-driver:1.0.0'
+    
+
 ## Show me the example!
 
 Sure thing. But you know you need to connect the printer, right?
