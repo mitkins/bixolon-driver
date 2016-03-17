@@ -13,7 +13,7 @@ ext {
     siteUrl = 'https://github.com/IstraTech/bixolon-driver'
     gitUrl = 'https://github.com/IstraTech/bixolon-driver.git'
 
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
 
     developerId = 'ksaric'
     developerName = 'Kristijan Šarić'
@@ -67,7 +67,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.akexorcist:bluetoothspp:1.0.0'
     testCompile 'org.slf4j:slf4j-api:1.7.16'
     testCompile 'org.slf4j:slf4j-android:1.7.16'
     testCompile 'junit:junit:4.12'

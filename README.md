@@ -3,10 +3,15 @@
 Bixolon's driver for Android *bluetooth* communication **done right**. 
 The core of the driver are pure functions/values, which enables *nice composition of actions*.
   
-Gradle (recommended):
+  
+If using just the control codes(Gradle):
 
     compile 'hr.istratech:bixolon-driver:1.0.0'
     
+Or if using the recommended "stack" (BluetoothSPP):
+
+    compile 'com.akexorcist:bluetoothspp:1.0.0'
+    compile 'hr.istratech:bixolon-driver:1.0.0'
 
 ## Show me the example!
 
@@ -29,6 +34,7 @@ I suggest you run the **integration test** while the printer is on to confirm th
             .withTextControlSequence( DeviceFont.DEVICE_FONT_A )
             .buildPrinter( textTextContent.toString() );
     
+    // if using BluetoothSPP library
     bluetoothSPP.send( printer.getCommand(), false );
     
 ```
@@ -45,6 +51,7 @@ I suggest you run the **integration test** while the printer is on to confirm th
             .withQrControlSequence( QrCodeErrorCorrectionLevel.L )
             .buildPrinter( qrTextContent.toString() );
     
+    // if using BluetoothSPP library
     bluetoothSPP.send( printer.getCommand(), false );
     
 ```
@@ -53,6 +60,7 @@ I suggest you run the **integration test** while the printer is on to confirm th
 
 ```java
 
+    // if using BluetoothSPP library
     bluetoothSPP.setOnDataReceivedListener( new BluetoothSPP.OnDataReceivedListener() {
         public void onDataReceived( byte[] data, String message ) {
             // Do something when data incoming
@@ -84,6 +92,7 @@ I suggest you run the **integration test** while the printer is on to confirm th
             .withControlSequences( qrPrinter )
             .buildPrinter( "test" );
     
+    // if using BluetoothSPP library
     bluetoothSPP.send( combinedPrinter.getCommand(), false );
     
 ```
@@ -142,7 +151,13 @@ You can check out Bixolon's (decent) documentation PDF called 'manual_spp-r200ii
 I spent some time writing my own bluetooth communication classes, and they worked, but a lot of problems remained.
 **It's not impossible, just very difficult.** 
 
-So, I used this (great!) library that completly handles the bluetooth communication:
+This project won't force you to use a specific bluetooth communication library, and I tried using Bixolon driver with:
+
+    int   write(byte[] out)
+    void  executeDirectIo(byte[] command, boolean hasResponse)
+
+And it works. But if you want, try something else.
+I used this (great!) library that completly handles the bluetooth communication:
 
 - [Android-BluetoothSPPLibrary](https://github.com/akexorcist/Android-BluetoothSPPLibrary)
 
