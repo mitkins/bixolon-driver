@@ -27,7 +27,7 @@ ext {
 android {
 
     compileSdkVersion 21
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '24.0.1'
 
     compileOptions {
         encoding "UTF-8"
