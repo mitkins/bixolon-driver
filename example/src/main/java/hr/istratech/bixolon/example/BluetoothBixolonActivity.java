@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,8 +21,10 @@ import hr.istratech.bixolon.driver.command.print.*;
 import hr.istratech.bixolon.driver.command.qr.QrCodeErrorCorrectionLevel;
 import hr.istratech.bixolon.driver.command.qr.QrCodeModel;
 import hr.istratech.bixolon.driver.command.qr.QrCodeSize;
+import hr.istratech.bixolon.driver.command.raster.RasterPrint;
 import hr.istratech.bixolon.driver.general.Printer;
 import hr.istratech.bixolon.driver.general.QrPrinterBuilder;
+import hr.istratech.bixolon.driver.general.RasterPrinterBuilder;
 import hr.istratech.bixolon.driver.general.TextPrinterBuilder;
 
 import java.nio.charset.Charset;
@@ -32,7 +36,7 @@ import java.nio.charset.Charset;
 
 public class BluetoothBixolonActivity extends Activity {
 
-    private static final String TAG = "BluetoothBixolonActivity";
+    private static final String TAG = "BluetoothActivity";
     public static final String NEW_LINE = "\r\n";
 
     private Button connectButton;
@@ -47,6 +51,8 @@ public class BluetoothBixolonActivity extends Activity {
     private TextView qrEditText;
     private Button qrPrintButton;
     private Button qrPermutationsPrintButton;
+
+    private Button rasterPrintButton;
 
     private Button closeButton;
 
@@ -76,6 +82,8 @@ public class BluetoothBixolonActivity extends Activity {
 
         this.qrPrintButton = (Button) this.findViewById( R.id.qr_print_button );
         this.qrPermutationsPrintButton = (Button) this.findViewById( R.id.qr_premutations_print_button );
+
+        this.rasterPrintButton = (Button) this.findViewById( R.id.raster_print_button );
 
         this.closeButton = (Button) this.findViewById( R.id.close_button );
 
@@ -137,6 +145,13 @@ public class BluetoothBixolonActivity extends Activity {
                 printQrPermutations();
             }
         } );
+
+        this.rasterPrintButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                printRaster();
+            }
+        });
 
         this.closeButton.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -342,6 +357,20 @@ public class BluetoothBixolonActivity extends Activity {
                 .withQrControlSequence( QrCodeSize.SIZE7 )
                 .withQrControlSequence( QrCodeErrorCorrectionLevel.L )
                 .buildPrinter( qrTextContent.toString() );
+
+        bluetoothSPP.send( printer.getCommand(), false );
+
+    }
+
+    public void printRaster() {
+
+        Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.thermal_test_image);
+
+        final Printer printer = RasterPrinterBuilder
+            .aPrinterBuilder()
+            .withGeneralControlSequence( Alignment.CENTER )
+            .withRasterControlSequence( RasterPrint.NORMAL )
+            .buildPrinter( bm );
 
         bluetoothSPP.send( printer.getCommand(), false );
 

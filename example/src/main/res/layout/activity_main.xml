@@ -46,6 +46,8 @@
             <Button android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="Qr permutations print"
                     android:id="@+id/qr_premutations_print_button" android:layout_gravity="center_horizontal"
                     android:textStyle="bold|italic"/>
+            <Button android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="Raster print"
+                    android:id="@+id/raster_print_button" android:layout_gravity="center_horizontal"/>
             <Button android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="Close"
                     android:id="@+id/close_button" android:layout_gravity="center_horizontal" android:textStyle="bold"/>
         </LinearLayout>

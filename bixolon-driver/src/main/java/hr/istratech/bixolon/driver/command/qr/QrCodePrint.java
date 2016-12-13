@@ -12,6 +12,7 @@ import hr.istratech.bixolon.driver.general.QrControlSequence;
 public enum QrCodePrint implements QrControlSequence {
 
     PRINT( new byte[]{(byte) 29, (byte) 40, (byte) 107, (byte) 3, (byte) 0, (byte) 49, (byte) 81, (byte) 48} );
+    //PRINT( new byte[]{(byte) 29, (byte) 107, (byte) 3, (byte) 0, (byte) 49, (byte) 81, (byte) 48} );
 
     private final byte[] command;
 

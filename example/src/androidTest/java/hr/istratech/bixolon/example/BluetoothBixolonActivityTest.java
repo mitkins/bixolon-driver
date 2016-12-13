@@ -44,4 +44,12 @@ public class BluetoothBixolonActivityTest extends ActivityInstrumentationTestCas
         Espresso.onView( ViewMatchers.withId( R.id.qr_print_button ) ).perform( ViewActions.click() );
     }
 
+    public void testRasterPrintCode() throws Exception {
+        Espresso.onView( ViewMatchers.withId( R.id.connect_button ) ).perform( ViewActions.click() );
+
+        Thread.sleep( 2000 ); // just wait for a while...
+
+        Espresso.onView( ViewMatchers.withId( R.id.raster_print_button ) ).perform( ViewActions.click() );
+    }
+
 }
