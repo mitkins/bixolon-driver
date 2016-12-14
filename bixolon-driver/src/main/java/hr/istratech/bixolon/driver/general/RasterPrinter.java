@@ -4,12 +4,14 @@ package hr.istratech.bixolon.driver.general;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import hr.istratech.bixolon.driver.command.print.Print;
+import hr.istratech.bixolon.driver.command.raster.LineSpacing;
 
 /**
  * @author ksaric
@@ -34,19 +36,10 @@ class RasterPrinter implements Printer {
         return print( bitmap );
     }
 
-	private final byte[] INITIALIZE_PRINTER = new byte[]{0x1B,0x40};
-
-	private final byte[] PRINT_AND_FEED_PAPER = new byte[]{0x0A};
-
 	private final byte[] SELECT_BIT_IMAGE_MODE = new byte[]{(byte)0x1B, (byte)0x2A};
-	private final byte[] SET_LINE_SPACING = new byte[]{0x1B, 0x33};
 	//private final byte[] TEST = new byte[]{0x1B, 0x2A, 0x0, 0x8, 0x0, (byte)128, (byte)64, (byte)32, (byte)16, (byte)8, (byte)4, (byte)2, (byte)1, (byte)0};
 	//private final byte[] TEST = new byte[]{0x1B, 0x2A, 0x0, 0x8, 0x0, (byte)238, (byte)42, (byte)59, (byte)0, (byte)255, (byte)255, (byte)2, (byte)1, (byte)0};
-	private final byte[] TEST = new byte[]{0x1B, 0x2A, (byte)33, 0x1, 0x0, (byte)255, (byte)0, (byte)255, (byte)255, (byte)0, (byte)255, (byte)255, (byte)0, (byte)255};
-
-	private FileOutputStream printOutput;
-
-	public int maxBitsWidth = 255;
+	//private final byte[] TEST = new byte[]{0x1B, 0x2A, (byte)33, 0x1, 0x0, (byte)255, (byte)0, (byte)255, (byte)255, (byte)0, (byte)255, (byte)255, (byte)0, (byte)255};
 
 	private byte[] buildPOSCommand(byte[] command, byte... args) {
 		byte[] posCommand = new byte[command.length + args.length];
@@ -57,19 +50,17 @@ class RasterPrinter implements Printer {
 		return posCommand;
 	}
 
-	private BitSet getBitsImageData(Bitmap image) {
+	private BitSet getBits( Bitmap bitmap ) {
 		int threshold = 127;
 		int index = 0;
-		int width = image.getWidth();
-		if ( width > 384 ) width = 384;
-		int dimenssions = width * image.getHeight();
-		BitSet imageBitsData = new BitSet(dimenssions);
+		int dimension = bitmap.getWidth() * bitmap.getHeight();
+		BitSet imageBitsData = new BitSet(dimension);
 
-		for (int y = 0; y < image.getHeight(); y++)
+		for (int y = 0; y < bitmap.getHeight(); y++)
 		{
-			for (int x = 0; x < image.getWidth(); x++)
+			for (int x = 0; x < bitmap.getWidth(); x++)
 			{
-				int color = bitmap.getPixel( x, y );
+				int color = this.bitmap.getPixel( x, y );
 				int  red = Color.red(color);
 				int  green = Color.green(color);
 				int  blue = Color.blue(color);
@@ -83,26 +74,31 @@ class RasterPrinter implements Printer {
 		return imageBitsData;
 	}
 
-	public void printImage(Bitmap image, ByteBuffer buffer) {
-		BitSet imageBits = getBitsImageData(image);
+	private int calculateBytes( final Bitmap bitmap ) {
+		int verticalBytes = (int)Math.ceil( bitmap.getHeight() / 8 );
+		int lines = verticalBytes / 3;
 
-		int width = image.getWidth();
-		if ( width > 384 ) width = 384;
+		int lineBytes = SELECT_BIT_IMAGE_MODE.length + 3 + (bitmap.getWidth() * 3) + Print.PRINT_LINE_FEED.getCommand().length;
+
+		return lineBytes * lines;
+	}
+
+	public byte[] toBytes( final Bitmap bitmap ) {
+		BitSet imageBits = getBits(bitmap);
+
+		int width = bitmap.getWidth();
 
 		byte widthLSB = (byte)(width & 0xFF);
 		byte widthMSB = (byte)((width >> 8) & 0xFF);
 
 		// COMMANDS
 		byte[] selectBitImageModeCommand = buildPOSCommand(SELECT_BIT_IMAGE_MODE, (byte) 33, widthLSB, widthMSB);
-		byte[] setLineSpacing24Dots = buildPOSCommand(SET_LINE_SPACING, (byte) 24);
-		byte[] setLineSpacing30Dots = buildPOSCommand(SET_LINE_SPACING, (byte) 30);
 
-		buffer.put(INITIALIZE_PRINTER);
-		buffer.put(setLineSpacing24Dots);
-		//buffer.put(TEST);
+		int messageSize = calculateBytes( bitmap );
+		final ByteBuffer buffer = ByteBuffer.allocate( messageSize );
 
 		int offset = 0;
-		while (offset < image.getHeight()) {
+		while (offset < bitmap.getHeight()) {
 			buffer.put(selectBitImageModeCommand);
 
 			int imageDataLineIndex = 0;
@@ -131,7 +127,7 @@ class RasterPrinter implements Printer {
 						// It'll be at (y * width) + x.
 						int i = (y * width) + x;
 
-						// If the image (or this stripe of the image)
+						// If the bitmap (or this stripe of the bitmap)
 						// is shorter than 24 dots, pad with zero.
 						boolean v = false;
 						if (i < imageBits.length()) {
@@ -153,79 +149,37 @@ class RasterPrinter implements Printer {
 
 			buffer.put(imageDataLine);
 			offset += 24;
-			buffer.put(PRINT_AND_FEED_PAPER);
+			buffer.put( Print.PRINT_LINE_FEED.getCommand() );
 		}
 
-		buffer.put(setLineSpacing30Dots);
+		return buffer.array();
 	}
 
     protected byte[] print( final Bitmap bitmap ) {
-        //ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        //bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+		// Truncate bitmap (if necessary)
+		byte[] dataBytes = toBytes( bitmap );
 
-        //final byte[] bytes = stream.toByteArray();
+	    // get message size
+		int messageSize =
+			LineSpacing.LINE_SPACING_24.getCommand().length +
+			dataBytes.length +
+			LineSpacing.DEFAULT.getCommand().length;
 
-		int width = bitmap.getWidth();
-		if ( width > 384 ) width = 384;
-
-		int verticalBytes = (int)Math.ceil( bitmap.getHeight() / 8 );
-		int lines = bitmap.getHeight() / 24;
-		int imageBytes = (verticalBytes * width) + ( PRINT_AND_FEED_PAPER.length * lines );
-
-        //double widthInBytes = Math.ceil( bitmap.getScaledWidth(DisplayMetrics.DENSITY_MEDIUM) / 8 );
-
-        // get message size
-        //Integer messageSize = 6 + (int)widthInBytes * bitmap.getScaledHeight( DisplayMetrics.DENSITY_MEDIUM);
-		//Integer messageSize = 6 + (int)bitmap.getWidth() * bitmap.getHeight();
-		//Integer messageSize = 9 + TEST.length;
-		Integer messageSize = INITIALIZE_PRINTER.length +
-			SET_LINE_SPACING.length + 1 +
-			SELECT_BIT_IMAGE_MODE.length + 3 +
-			imageBytes +
-			SET_LINE_SPACING.length + 1 +
-			1000;
-
-
-//        for ( final ControlSequence controlSequence : controlSequences ) {
-//            messageSize += controlSequence.getCommand().length;
-//        }
+        for ( final ControlSequence controlSequence : controlSequences ) {
+            messageSize += controlSequence.getCommand().length;
+        }
 
         // create a buffer from message size
         final ByteBuffer buffer = ByteBuffer.allocate( messageSize );
 
-        // put the instructions
-        //for ( final ControlSequence controlSequence : controlSequences ) {
-        //    buffer.put( controlSequence.getCommand() );
-        //}
+		// put the instructions
+        for ( final ControlSequence controlSequence : controlSequences ) {
+            buffer.put( controlSequence.getCommand() );
+        }
 
-        //print_image( bitmap, buffer );
-
-		//byte[] printBitmap = decodeBitmap( bitmap );
-		//buffer.put( printBitmap );
-
-        //int width = bitmap.getWidth();
-        //int height = bitmap.getHeight();
-
-		printImage( bitmap, buffer );
-
-		// xL
-        //buffer.put( (byte) (width & 0xFF) );
-
-        // xH
-        //buffer.put( (byte) ((width >> 8) & 0xFF) );
-
-        // xL
-        //buffer.put( (byte) (height & 0xFF) );
-
-        // xH
-        //buffer.put( (byte) ((height >> 8) & 0xFF) );
-
-        // put the bitmap
-        //buffer.put( bytes );
-        //bitmap.copyPixelsToBuffer( buffer );
-
-        // print the buffer out
-        //buffer.put( Print.PRINT_LINE_FEED.getCommand() );
+		buffer.put( LineSpacing.LINE_SPACING_24.getCommand() );
+		buffer.put( dataBytes );
+		buffer.put( LineSpacing.DEFAULT.getCommand() );
 
         return buffer.array();
     }

@@ -369,7 +369,6 @@ public class BluetoothBixolonActivity extends Activity {
         final Printer printer = RasterPrinterBuilder
             .aPrinterBuilder()
             .withGeneralControlSequence( Alignment.CENTER )
-            .withRasterControlSequence( RasterPrint.NORMAL )
             .buildPrinter( bm );
 
         bluetoothSPP.send( printer.getCommand(), false );
