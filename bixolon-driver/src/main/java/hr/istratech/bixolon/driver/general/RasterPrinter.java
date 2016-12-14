@@ -12,6 +12,7 @@ import java.util.List;
 
 import hr.istratech.bixolon.driver.command.print.Print;
 import hr.istratech.bixolon.driver.command.raster.LineSpacing;
+import hr.istratech.bixolon.driver.command.raster.RasterPrint;
 
 /**
  * @author ksaric
@@ -35,20 +36,6 @@ class RasterPrinter implements Printer {
     public byte[] getCommand() {
         return print( bitmap );
     }
-
-	private final byte[] SELECT_BIT_IMAGE_MODE = new byte[]{(byte)0x1B, (byte)0x2A};
-	//private final byte[] TEST = new byte[]{0x1B, 0x2A, 0x0, 0x8, 0x0, (byte)128, (byte)64, (byte)32, (byte)16, (byte)8, (byte)4, (byte)2, (byte)1, (byte)0};
-	//private final byte[] TEST = new byte[]{0x1B, 0x2A, 0x0, 0x8, 0x0, (byte)238, (byte)42, (byte)59, (byte)0, (byte)255, (byte)255, (byte)2, (byte)1, (byte)0};
-	//private final byte[] TEST = new byte[]{0x1B, 0x2A, (byte)33, 0x1, 0x0, (byte)255, (byte)0, (byte)255, (byte)255, (byte)0, (byte)255, (byte)255, (byte)0, (byte)255};
-
-	private byte[] buildPOSCommand(byte[] command, byte... args) {
-		byte[] posCommand = new byte[command.length + args.length];
-
-		System.arraycopy(command, 0, posCommand, 0, command.length);
-		System.arraycopy(args, 0, posCommand, command.length, args.length);
-
-		return posCommand;
-	}
 
 	private BitSet getBits( Bitmap bitmap ) {
 		int threshold = 127;
@@ -78,12 +65,13 @@ class RasterPrinter implements Printer {
 		int verticalBytes = (int)Math.ceil( bitmap.getHeight() / 8 );
 		int lines = verticalBytes / 3;
 
-		int lineBytes = SELECT_BIT_IMAGE_MODE.length + 3 + (bitmap.getWidth() * 3) + Print.PRINT_LINE_FEED.getCommand().length;
+		int lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (bitmap.getWidth() * 3) + Print.PRINT_LINE_FEED.getCommand().length;
 
 		return lineBytes * lines;
 	}
 
 	public byte[] toBytes( final Bitmap bitmap ) {
+		// Based on http://stackoverflow.com/questions/26269019/print-bitmap-full-page-width-in-thermal-dot-printer-using-esc-pos-in-java
 		BitSet imageBits = getBits(bitmap);
 
 		int width = bitmap.getWidth();
@@ -91,15 +79,14 @@ class RasterPrinter implements Printer {
 		byte widthLSB = (byte)(width & 0xFF);
 		byte widthMSB = (byte)((width >> 8) & 0xFF);
 
-		// COMMANDS
-		byte[] selectBitImageModeCommand = buildPOSCommand(SELECT_BIT_IMAGE_MODE, (byte) 33, widthLSB, widthMSB);
-
 		int messageSize = calculateBytes( bitmap );
 		final ByteBuffer buffer = ByteBuffer.allocate( messageSize );
 
 		int offset = 0;
 		while (offset < bitmap.getHeight()) {
-			buffer.put(selectBitImageModeCommand);
+			buffer.put( RasterPrint.BIT_IMAGE_MODE.getCommand() );
+			buffer.put( widthLSB );
+			buffer.put( widthMSB );
 
 			int imageDataLineIndex = 0;
 			byte[] imageDataLine = new byte[3 * width];

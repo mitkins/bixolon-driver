@@ -5,8 +5,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import hr.istratech.bixolon.driver.command.print.Print;
-
 /**
  * @author ksaric
  */
@@ -19,7 +17,7 @@ public class RasterTest {
         final byte[] printLineFeedCommand = new byte[]{(byte) 10};
 
         //When
-        final byte[] command = RasterPrint.NORMAL.getCommand();
+        final byte[] command = RasterPrint.BIT_IMAGE_MODE.getCommand();
 
         //Then
         Assert.assertEquals( Arrays.toString( printLineFeedCommand ), Arrays.toString( command ) );
