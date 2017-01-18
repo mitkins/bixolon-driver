@@ -15,7 +15,13 @@ import hr.istratech.bixolon.driver.command.raster.LineSpacing;
 import hr.istratech.bixolon.driver.command.raster.RasterPrint;
 
 /**
- * @author ksaric
+ * @author mitkins
+ *
+ * Based on article that explains the process:
+ * http://new-grumpy-mentat.blogspot.com.au/2014/06/java-escpos-image-printing.html
+ *
+ * And sample code from:
+ * http://stackoverflow.com/questions/26269019/print-bitmap-full-page-width-in-thermal-dot-printer-using-esc-pos-in-java
  */
 
 class RasterPrinter implements Printer {
@@ -67,11 +73,10 @@ class RasterPrinter implements Printer {
 
 		int lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (bitmap.getWidth() * 3) + Print.PRINT_LINE_FEED.getCommand().length;
 
-		return lineBytes * lines;
+		return lineBytes * ( lines + 1 );
 	}
 
 	public byte[] toBytes( final Bitmap bitmap ) {
-		// Based on http://stackoverflow.com/questions/26269019/print-bitmap-full-page-width-in-thermal-dot-printer-using-esc-pos-in-java
 		BitSet imageBits = getBits(bitmap);
 
 		int width = bitmap.getWidth();
