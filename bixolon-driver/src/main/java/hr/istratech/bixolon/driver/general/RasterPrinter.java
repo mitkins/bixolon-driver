@@ -25,26 +25,34 @@ import hr.istratech.bixolon.driver.command.raster.RasterPrint;
  */
 
 class RasterPrinter implements Printer {
+	public static final int DEFAULT_THRESHOLD = 200;
 
     private final Collection<ControlSequence> controlSequences;
     private final Bitmap bitmap;
+	private final int printerWidth;
+	private final int luminanceThreshold;
 
-	private RasterPrinter(final List<ControlSequence> controlSequences, final Bitmap bitmap ) {
-        this.bitmap = bitmap;
+	private RasterPrinter(final List<ControlSequence> controlSequences, final Bitmap bitmap, final int printerWidth, final int luminanceThreshold) {
         this.controlSequences = Collections.unmodifiableCollection( controlSequences );
+        this.bitmap = bitmap;
+		this.printerWidth = printerWidth;
+		this.luminanceThreshold = luminanceThreshold;
     }
 
-    public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap) {
-        return new RasterPrinter( controlSequences, bitmap );
+    public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, int printerWidth) {
+        return create( controlSequences, bitmap, printerWidth, DEFAULT_THRESHOLD );
     }
 
-    @Override
+	public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, final int printerWidth, final int luminanceThreshold) {
+		return new RasterPrinter( controlSequences, bitmap, printerWidth, luminanceThreshold );
+	}
+
+	@Override
     public byte[] getCommand() {
         return print( bitmap );
     }
 
 	private BitSet getBits( Bitmap bitmap ) {
-		int threshold = 127;
 		int index = 0;
 		int dimension = bitmap.getWidth() * bitmap.getHeight();
 		BitSet imageBitsData = new BitSet(dimension);
@@ -59,7 +67,7 @@ class RasterPrinter implements Printer {
 				int  blue = Color.blue(color);
 				int luminance = (int)(red * 0.3 + green * 0.59 + blue * 0.11);
 				//dots[index] = (luminance < threshold);
-				imageBitsData.set(index, (luminance < threshold));
+				imageBitsData.set(index, (luminance < luminanceThreshold));
 				index++;
 			}
 		}
@@ -68,10 +76,13 @@ class RasterPrinter implements Printer {
 	}
 
 	private int calculateBytes( final Bitmap bitmap ) {
-		int verticalBytes = (int)Math.ceil( bitmap.getHeight() / 8 );
+		int width = bitmap.getWidth();
+		int height = bitmap.getHeight();
+
+		int verticalBytes = (int)Math.ceil( height / 8 );
 		int lines = verticalBytes / 3;
 
-		int lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (bitmap.getWidth() * 3) + Print.PRINT_LINE_FEED.getCommand().length;
+		int lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.PRINT_LINE_FEED.getCommand().length;
 
 		return lineBytes * ( lines + 1 );
 	}
@@ -80,6 +91,9 @@ class RasterPrinter implements Printer {
 		BitSet imageBits = getBits(bitmap);
 
 		int width = bitmap.getWidth();
+
+		// Bitmaps wider than the printer width are ignored (instead of sending bad data to the device)
+		if ( width > printerWidth) return new byte[0];
 
 		byte widthLSB = (byte)(width & 0xFF);
 		byte widthMSB = (byte)((width >> 8) & 0xFF);

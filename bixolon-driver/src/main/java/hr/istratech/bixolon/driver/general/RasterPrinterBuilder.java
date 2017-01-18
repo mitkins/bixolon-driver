@@ -54,8 +54,8 @@ public class RasterPrinterBuilder {
         return this;
     }
 
-    public Printer buildPrinter( final Bitmap bitmap ) {
-        return RasterPrinter.create( controlSequences, bitmap );
+    public Printer buildPrinter( final Bitmap bitmap, final int printerWidth ) {
+        return RasterPrinter.create( controlSequences, bitmap, printerWidth );
     }
 
 }
