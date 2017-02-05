@@ -54,11 +54,11 @@ public class RasterPrinterBuilder {
         return this;
     }
 
-    public Printer buildPrinter( final Bitmap bitmap, final int printerWidth ) {
-        return RasterPrinter.create( controlSequences, bitmap, printerWidth );
+    public Printer buildPrinter( final Bitmap bitmap, final boolean pageMode, final int printerWidth ) {
+        return RasterPrinter.create( controlSequences, bitmap, pageMode, printerWidth );
     }
 
-    public Printer buildPrinter( final Bitmap bitmap, final int printerWidth, final int luminanceThreshold ) {
-        return RasterPrinter.create( controlSequences, bitmap, printerWidth, luminanceThreshold );
+    public Printer buildPrinter( final Bitmap bitmap, final boolean pageMode, final int printerWidth, final int luminanceThreshold ) {
+        return RasterPrinter.create( controlSequences, bitmap, pageMode, printerWidth, luminanceThreshold );
     }
 }

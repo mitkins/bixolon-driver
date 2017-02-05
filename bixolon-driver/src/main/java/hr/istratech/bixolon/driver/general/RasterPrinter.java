@@ -29,22 +29,24 @@ class RasterPrinter implements Printer {
 
     private final Collection<ControlSequence> controlSequences;
     private final Bitmap bitmap;
+	private final boolean pageMode;
 	private final int printerWidth;
 	private final int luminanceThreshold;
 
-	private RasterPrinter(final List<ControlSequence> controlSequences, final Bitmap bitmap, final int printerWidth, final int luminanceThreshold) {
+	private RasterPrinter(final List<ControlSequence> controlSequences, final Bitmap bitmap, boolean pageMode, final int printerWidth, final int luminanceThreshold) {
         this.controlSequences = Collections.unmodifiableCollection( controlSequences );
         this.bitmap = bitmap;
+		this.pageMode = pageMode;
 		this.printerWidth = printerWidth;
 		this.luminanceThreshold = luminanceThreshold;
     }
 
-    public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, int printerWidth) {
-        return create( controlSequences, bitmap, printerWidth, DEFAULT_THRESHOLD );
+    public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, boolean pageMode, int printerWidth) {
+        return create( controlSequences, bitmap, pageMode, printerWidth, DEFAULT_THRESHOLD );
     }
 
-	public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, final int printerWidth, final int luminanceThreshold) {
-		return new RasterPrinter( controlSequences, bitmap, printerWidth, luminanceThreshold );
+	public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, boolean pageMode, final int printerWidth, final int luminanceThreshold) {
+		return new RasterPrinter( controlSequences, bitmap, pageMode, printerWidth, luminanceThreshold );
 	}
 
 	@Override
@@ -82,7 +84,13 @@ class RasterPrinter implements Printer {
 		int verticalBytes = (int)Math.ceil( height / 8 );
 		int lines = verticalBytes / 3;
 
-		int lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.PRINT_LINE_FEED.getCommand().length;
+		int lineBytes;
+		if ( pageMode ) {
+			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.PRINT_LINE_FEED_24.getCommand().length + Print.PRINT_LINE_FEED_24.getCommand().length;
+
+		} else {
+			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.PRINT_LINE_FEED_24.getCommand().length;
+		}
 
 		return lineBytes * ( lines + 1 );
 	}
@@ -155,7 +163,8 @@ class RasterPrinter implements Printer {
 
 			buffer.put(imageDataLine);
 			offset += 24;
-			buffer.put( Print.PRINT_LINE_FEED.getCommand() );
+			buffer.put( Print.PRINT_LINE_FEED_24.getCommand() );
+			if ( pageMode ) buffer.put( Print.PRINT_LINE_FEED_24.getCommand() );
 		}
 
 		return buffer.array();
@@ -166,10 +175,13 @@ class RasterPrinter implements Printer {
 		byte[] dataBytes = toBytes( bitmap );
 
 	    // get message size
-		int messageSize =
-			LineSpacing.LINE_SPACING_24.getCommand().length +
-			dataBytes.length +
-			LineSpacing.DEFAULT.getCommand().length;
+		int messageSize = dataBytes.length;
+
+		if ( pageMode ) {
+			messageSize = messageSize +
+				Print.PAGE_MODE.getCommand().length +
+				Print.FORM_FEED.getCommand().length;
+		}
 
         for ( final ControlSequence controlSequence : controlSequences ) {
             messageSize += controlSequence.getCommand().length;
@@ -183,9 +195,9 @@ class RasterPrinter implements Printer {
             buffer.put( controlSequence.getCommand() );
         }
 
-		buffer.put( LineSpacing.LINE_SPACING_24.getCommand() );
+		if ( pageMode ) buffer.put( Print.PAGE_MODE.getCommand() );
 		buffer.put( dataBytes );
-		buffer.put( LineSpacing.DEFAULT.getCommand() );
+		if ( pageMode ) buffer.put( Print.FORM_FEED.getCommand() );
 
         return buffer.array();
     }
