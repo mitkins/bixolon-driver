@@ -18,7 +18,13 @@ public enum Print implements TextControlSequence {
     PAGE_MODE( new byte[]{(byte)27, (byte)76} ),
     STANDARD_MODE( new byte[]{(byte)27, (byte)83} ),
     FORM_FEED( new byte[]{(byte)27, (byte)12} ),
-    CLEAR_BUFFER( new byte[]{(byte)24} );
+
+    CLEAR_BUFFER( new byte[]{(byte)24} ),
+    LABEL_MODE( new byte[]{(byte)8, (byte)76, (byte)76} ),
+    RECEIPT_MODE( new byte[]{(byte)8, (byte)76, (byte)82} ),
+
+    // For when you want to conditionally send a print command
+    EMPTY( new byte[]{} );
 
     private final byte[] command;
 
