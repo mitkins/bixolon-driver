@@ -181,6 +181,9 @@ class RasterPrinter implements Printer {
 			messageSize = messageSize +
 				Print.PAGE_MODE.getCommand().length +
 				Print.FORM_FEED.getCommand().length;
+
+		} else {
+			messageSize = messageSize + Print.STANDARD_MODE.getCommand().length;
 		}
 
         for ( final ControlSequence controlSequence : controlSequences ) {
@@ -195,9 +198,17 @@ class RasterPrinter implements Printer {
             buffer.put( controlSequence.getCommand() );
         }
 
-		if ( pageMode ) buffer.put( Print.PAGE_MODE.getCommand() );
+		if ( pageMode ) {
+			buffer.put( Print.PAGE_MODE.getCommand() );
+		} else {
+			buffer.put( Print.STANDARD_MODE.getCommand() );
+		}
+
 		buffer.put( dataBytes );
-		if ( pageMode ) buffer.put( Print.FORM_FEED.getCommand() );
+
+		if ( pageMode ) {
+			buffer.put( Print.FORM_FEED.getCommand() );
+		}
 
         return buffer.array();
     }
