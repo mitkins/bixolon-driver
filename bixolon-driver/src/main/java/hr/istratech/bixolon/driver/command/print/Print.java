@@ -15,11 +15,13 @@ public enum Print implements TextControlSequence {
     PRINT_LINE_FEED( new byte[]{(byte) 10} ),
     PRINT_LINE_FEED_24( new byte[]{(byte)27, (byte)74, (byte)24} ),
 
-    PAGE_MODE( new byte[]{(byte)27, (byte)76} ),
     STANDARD_MODE( new byte[]{(byte)27, (byte)83} ),
-    FORM_FEED( new byte[]{(byte)27, (byte)12} ),
+    FORM_FEED( new byte[]{(byte)12} ),
 
+    PAGE_MODE( new byte[]{(byte)27, (byte)76} ),
+    END_PAGE_MODE( new byte[]{(byte)27, (byte)12} ),
     CLEAR_BUFFER( new byte[]{(byte)24} ),
+
     LABEL_MODE( new byte[]{(byte)8, (byte)76, (byte)76} ),
     RECEIPT_MODE( new byte[]{(byte)8, (byte)76, (byte)82} ),
 

@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 import hr.istratech.bixolon.driver.command.print.Print;
-import hr.istratech.bixolon.driver.command.raster.LineSpacing;
 import hr.istratech.bixolon.driver.command.raster.RasterPrint;
 
 /**
@@ -180,10 +179,12 @@ class RasterPrinter implements Printer {
 		if ( pageMode ) {
 			messageSize = messageSize +
 				Print.PAGE_MODE.getCommand().length +
-				Print.FORM_FEED.getCommand().length;
+				Print.END_PAGE_MODE.getCommand().length;
 
 		} else {
-			messageSize = messageSize + Print.STANDARD_MODE.getCommand().length;
+			messageSize = messageSize +
+				Print.STANDARD_MODE.getCommand().length +
+				Print.FORM_FEED.getCommand().length;
 		}
 
         for ( final ControlSequence controlSequence : controlSequences ) {
@@ -207,6 +208,8 @@ class RasterPrinter implements Printer {
 		buffer.put( dataBytes );
 
 		if ( pageMode ) {
+			buffer.put( Print.END_PAGE_MODE.getCommand() );
+		} else {
 			buffer.put( Print.FORM_FEED.getCommand() );
 		}
 
