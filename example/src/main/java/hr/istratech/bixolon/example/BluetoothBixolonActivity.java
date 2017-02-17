@@ -370,6 +370,7 @@ public class BluetoothBixolonActivity extends Activity {
             .aPrinterBuilder()
             .withControlSequences( Buffer.CLEAR_BUFFER)
             .withGeneralControlSequence( Alignment.CENTER )
+            .postControlSequences( Print.FORM_FEED )
             .buildPrinter( bm, false, PRINTER_WIDTH );
 
         bluetoothSPP.send( printer.getCommand(), false );

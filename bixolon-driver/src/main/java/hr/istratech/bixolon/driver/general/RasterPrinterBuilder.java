@@ -16,10 +16,12 @@ import hr.istratech.bixolon.driver.command.print.CodePage;
 public class RasterPrinterBuilder {
 
     private final List<ControlSequence> controlSequences;
+    private final List<ControlSequence> postControlSequences;
     private CodePage codePage = CodePage.CP_437_USA;
 
     public RasterPrinterBuilder() {
         this.controlSequences = new ArrayList<ControlSequence>();
+        this.postControlSequences = new ArrayList<ControlSequence>();
     }
 
     public static RasterPrinterBuilder aPrinterBuilder() {
@@ -54,11 +56,26 @@ public class RasterPrinterBuilder {
         return this;
     }
 
-    public Printer buildPrinter( final Bitmap bitmap, final boolean pageMode, final int printerWidth ) {
-        return RasterPrinter.create( controlSequences, bitmap, pageMode, printerWidth );
+    public RasterPrinterBuilder postControlSequences(final ControlSequence controlSequence ) {
+        this.postControlSequences.add( controlSequence );
+        return this;
     }
 
-    public Printer buildPrinter( final Bitmap bitmap, final boolean pageMode, final int printerWidth, final int luminanceThreshold ) {
-        return RasterPrinter.create( controlSequences, bitmap, pageMode, printerWidth, luminanceThreshold );
+    public RasterPrinterBuilder postGeneralControlSequence(final GeneralControlSequence controlSequence ) {
+        this.postControlSequences.add( controlSequence );
+        return this;
+    }
+
+    public RasterPrinterBuilder postRasterControlSequence(final RasterControlSequence controlSequence ) {
+        this.postControlSequences.add( controlSequence );
+        return this;
+    }
+
+    public Printer buildPrinter( final Bitmap bitmap, final boolean pageMode, final int maxWidth ) {
+        return RasterPrinter.create( controlSequences, postControlSequences, bitmap, maxWidth );
+    }
+
+    public Printer buildPrinter( final Bitmap bitmap, final boolean pageMode, final int maxWidth, final int luminanceThreshold ) {
+        return RasterPrinter.create( controlSequences, postControlSequences, bitmap, maxWidth, luminanceThreshold );
     }
 }

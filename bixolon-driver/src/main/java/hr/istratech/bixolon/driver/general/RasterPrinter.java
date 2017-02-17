@@ -28,25 +28,25 @@ class RasterPrinter implements Printer {
 	public static final int DEFAULT_THRESHOLD = 200;
 
     private final Collection<ControlSequence> controlSequences;
+	private final Collection<ControlSequence> postControlSequences;
     private final Bitmap bitmap;
-	private final boolean pageMode;
 	private final int printerWidth;
 	private final int luminanceThreshold;
 
-	private RasterPrinter(final List<ControlSequence> controlSequences, final Bitmap bitmap, boolean pageMode, final int printerWidth, final int luminanceThreshold) {
+	private RasterPrinter(final List<ControlSequence> controlSequences, final List<ControlSequence> postControlSequences, final Bitmap bitmap, final int maxWidth, final int luminanceThreshold) {
         this.controlSequences = Collections.unmodifiableCollection( controlSequences );
+		this.postControlSequences = Collections.unmodifiableCollection( controlSequences );
         this.bitmap = bitmap;
-		this.pageMode = pageMode;
-		this.printerWidth = printerWidth;
+		this.printerWidth = maxWidth;
 		this.luminanceThreshold = luminanceThreshold;
     }
 
-    public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, boolean pageMode, int printerWidth) {
-        return create( controlSequences, bitmap, pageMode, printerWidth, DEFAULT_THRESHOLD );
+    public static Printer create(final List<ControlSequence> controlSequences, final List<ControlSequence> postControlSequences, final Bitmap bitmap, int maxWidth) {
+        return create( controlSequences, postControlSequences, bitmap, maxWidth, DEFAULT_THRESHOLD );
     }
 
-	public static Printer create(final List<ControlSequence> controlSequences, final Bitmap bitmap, boolean pageMode, final int printerWidth, final int luminanceThreshold) {
-		return new RasterPrinter( controlSequences, bitmap, pageMode, printerWidth, luminanceThreshold );
+	public static Printer create(final List<ControlSequence> controlSequences, final List<ControlSequence> postControlSequences, final Bitmap bitmap, final int maxWidth, final int luminanceThreshold) {
+		return new RasterPrinter( controlSequences, postControlSequences, bitmap, maxWidth, luminanceThreshold );
 	}
 
 	@Override
@@ -85,7 +85,7 @@ class RasterPrinter implements Printer {
 		int lines = verticalBytes / 3;
 
 		int lineBytes;
-		if ( pageMode ) {
+		if ( controlSequences.contains(Buffer.PAGE_MODE) ) {
 			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.LINE_FEED_24.getCommand().length + Print.LINE_FEED_24.getCommand().length;
 
 		} else {
@@ -164,7 +164,7 @@ class RasterPrinter implements Printer {
 			buffer.put(imageDataLine);
 			offset += 24;
 			buffer.put( Print.LINE_FEED_24.getCommand() );
-			if ( pageMode ) buffer.put( Print.LINE_FEED_24.getCommand() );
+			if ( controlSequences.contains(Buffer.PAGE_MODE) ) buffer.put( Print.LINE_FEED_24.getCommand() );
 		}
 
 		return buffer.array();
@@ -177,22 +177,15 @@ class RasterPrinter implements Printer {
 	    // get message size
 		int messageSize = dataBytes.length;
 
-		if ( pageMode ) {
-			messageSize = messageSize +
-				Buffer.PAGE_MODE.getCommand().length +
-				Buffer.PRINT_BUFFER.getCommand().length;
-
-		} else {
-			messageSize = messageSize +
-				Buffer.STANDARD_MODE.getCommand().length +
-				Print.FORM_FEED.getCommand().length;
-		}
-
         for ( final ControlSequence controlSequence : controlSequences ) {
             messageSize += controlSequence.getCommand().length;
         }
 
-        // create a buffer from message size
+		for ( final ControlSequence postControlSequence : postControlSequences ) {
+			messageSize += postControlSequence.getCommand().length;
+		}
+
+		// create a buffer from message size
         final ByteBuffer buffer = ByteBuffer.allocate( messageSize );
 
 		// put the instructions
@@ -200,20 +193,13 @@ class RasterPrinter implements Printer {
             buffer.put( controlSequence.getCommand() );
         }
 
-		if ( pageMode ) {
-			buffer.put( Buffer.PAGE_MODE.getCommand() );
-		} else {
-			buffer.put( Buffer.STANDARD_MODE.getCommand() );
-		}
-
 		buffer.put( dataBytes );
 
-		if ( pageMode ) {
-			buffer.put( Buffer.PRINT_BUFFER.getCommand() );
-		} else {
-			buffer.put( Print.FORM_FEED.getCommand() );
+		// put the instructions
+		for ( final ControlSequence postControlSequence : postControlSequences ) {
+			buffer.put( postControlSequence.getCommand() );
 		}
 
-        return buffer.array();
+		return buffer.array();
     }
 }
