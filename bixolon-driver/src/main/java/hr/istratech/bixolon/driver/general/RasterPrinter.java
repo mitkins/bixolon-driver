@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import hr.istratech.bixolon.driver.command.print.Buffer;
 import hr.istratech.bixolon.driver.command.print.Print;
 import hr.istratech.bixolon.driver.command.raster.RasterPrint;
 
@@ -85,10 +86,10 @@ class RasterPrinter implements Printer {
 
 		int lineBytes;
 		if ( pageMode ) {
-			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.PRINT_LINE_FEED_24.getCommand().length + Print.PRINT_LINE_FEED_24.getCommand().length;
+			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.LINE_FEED_24.getCommand().length + Print.LINE_FEED_24.getCommand().length;
 
 		} else {
-			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.PRINT_LINE_FEED_24.getCommand().length;
+			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.LINE_FEED_24.getCommand().length;
 		}
 
 		return lineBytes * ( lines + 1 );
@@ -162,8 +163,8 @@ class RasterPrinter implements Printer {
 
 			buffer.put(imageDataLine);
 			offset += 24;
-			buffer.put( Print.PRINT_LINE_FEED_24.getCommand() );
-			if ( pageMode ) buffer.put( Print.PRINT_LINE_FEED_24.getCommand() );
+			buffer.put( Print.LINE_FEED_24.getCommand() );
+			if ( pageMode ) buffer.put( Print.LINE_FEED_24.getCommand() );
 		}
 
 		return buffer.array();
@@ -178,12 +179,12 @@ class RasterPrinter implements Printer {
 
 		if ( pageMode ) {
 			messageSize = messageSize +
-				Print.PAGE_MODE.getCommand().length +
-				Print.END_PAGE_MODE.getCommand().length;
+				Buffer.PAGE_MODE.getCommand().length +
+				Buffer.PRINT_BUFFER.getCommand().length;
 
 		} else {
 			messageSize = messageSize +
-				Print.STANDARD_MODE.getCommand().length +
+				Buffer.STANDARD_MODE.getCommand().length +
 				Print.FORM_FEED.getCommand().length;
 		}
 
@@ -200,15 +201,15 @@ class RasterPrinter implements Printer {
         }
 
 		if ( pageMode ) {
-			buffer.put( Print.PAGE_MODE.getCommand() );
+			buffer.put( Buffer.PAGE_MODE.getCommand() );
 		} else {
-			buffer.put( Print.STANDARD_MODE.getCommand() );
+			buffer.put( Buffer.STANDARD_MODE.getCommand() );
 		}
 
 		buffer.put( dataBytes );
 
 		if ( pageMode ) {
-			buffer.put( Print.END_PAGE_MODE.getCommand() );
+			buffer.put( Buffer.PRINT_BUFFER.getCommand() );
 		} else {
 			buffer.put( Print.FORM_FEED.getCommand() );
 		}
