@@ -17,7 +17,6 @@ public class RasterPrinterBuilder {
 
     private final List<ControlSequence> controlSequences;
     private final List<ControlSequence> postControlSequences;
-    private CodePage codePage = CodePage.CP_437_USA;
 
     public RasterPrinterBuilder() {
         this.controlSequences = new ArrayList<ControlSequence>();
@@ -26,12 +25,6 @@ public class RasterPrinterBuilder {
 
     public static RasterPrinterBuilder aPrinterBuilder() {
         return new RasterPrinterBuilder();
-    }
-
-    public RasterPrinterBuilder withCodePage(final CodePage codePage ) {
-        this.codePage = codePage;
-        this.controlSequences.add( codePage );
-        return this;
     }
 
     /**
