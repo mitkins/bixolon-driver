@@ -14,8 +14,8 @@ public enum Page implements GeneralControlSequence {
     STANDARD_MODE( new byte[]{(byte)27, (byte)83} ),
     PAGE_MODE( new byte[]{(byte)27, (byte)76} ),
 
-    CLEAR_BUFFER( new byte[]{(byte)24} ),
-    PRINT_BUFFER( new byte[]{(byte)27, (byte)12} );
+    PAGE_CANCEL( new byte[]{(byte)24} ),
+    PAGE_PRINT( new byte[]{(byte)27, (byte)12} );
 
     private final byte[] command;
 

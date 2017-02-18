@@ -32,7 +32,7 @@ class RasterPrinter implements Printer {
 	private final int maxWidth;
 	private final int luminanceThreshold;
 
-	private RasterPrinter(final List<ControlSequence> controlSequences, final List<ControlSequence> postControlSequences, final Bitmap bitmap, final int maxWidth, final int luminanceThreshold) {
+	private RasterPrinter( final List<ControlSequence> controlSequences, final List<ControlSequence> postControlSequences, final Bitmap bitmap, final int maxWidth, final int luminanceThreshold) {
         this.controlSequences = Collections.unmodifiableCollection( controlSequences );
 		this.postControlSequences = Collections.unmodifiableCollection( postControlSequences );
         this.bitmap = bitmap;
@@ -93,7 +93,7 @@ class RasterPrinter implements Printer {
 		return lineBytes * ( lines + 1 );
 	}
 
-	public byte[] toBytes( final Bitmap bitmap ) {
+	private byte[] toBytes(final Bitmap bitmap) {
 		BitSet imageBits = getBits(bitmap);
 
 		int width = bitmap.getWidth();

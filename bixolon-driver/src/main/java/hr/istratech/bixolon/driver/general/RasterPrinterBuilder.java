@@ -28,7 +28,7 @@ public class RasterPrinterBuilder {
     }
 
     /**
-     * IF you are using this, be absolutly sure to <b>use existing commands</b> or you <b>know what you are doing</b>.
+     * IF you are using this, be absolutely sure to <b>use existing commands</b> or you <b>know what you are doing</b>.
      *
      * @param controlSequence being composed as a printer
      * @return a builder for chaining
