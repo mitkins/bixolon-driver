@@ -11,7 +11,8 @@ import hr.istratech.bixolon.driver.general.RasterControlSequence;
 
 public enum RasterPrint implements RasterControlSequence {
 
-    BIT_IMAGE_MODE( new byte[]{(byte)27, (byte)42, (byte)33} );
+    BIT_IMAGE_MODE( new byte[]{(byte)27, (byte)42, (byte)33} ),
+    LINE_FEED_24( new byte[]{(byte)27, (byte)74, (byte)24} );
 
     private final byte[] command;
 

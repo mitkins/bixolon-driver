@@ -1,7 +1,7 @@
-package hr.istratech.bixolon.driver.command.print;
+package hr.istratech.bixolon.driver.command.general;
 
 
-import hr.istratech.bixolon.driver.general.TextControlSequence;
+import hr.istratech.bixolon.driver.general.GeneralControlSequence;
 
 /**
  * The <em>command instruction(s)</em> can be found on <b>page 10</b> from 'commands manual'.
@@ -9,7 +9,7 @@ import hr.istratech.bixolon.driver.general.TextControlSequence;
  * @author ksaric
  */
 
-public enum Buffer implements TextControlSequence {
+public enum Page implements GeneralControlSequence {
 
     STANDARD_MODE( new byte[]{(byte)27, (byte)83} ),
     PAGE_MODE( new byte[]{(byte)27, (byte)76} ),
@@ -19,7 +19,7 @@ public enum Buffer implements TextControlSequence {
 
     private final byte[] command;
 
-    Buffer(final byte[] command ) {
+    Page(final byte[] command ) {
         this.command = command;
     }
 

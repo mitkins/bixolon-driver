@@ -10,8 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import hr.istratech.bixolon.driver.command.print.Buffer;
-import hr.istratech.bixolon.driver.command.print.Print;
+import hr.istratech.bixolon.driver.command.general.Page;
 import hr.istratech.bixolon.driver.command.raster.RasterPrint;
 
 /**
@@ -30,14 +29,14 @@ class RasterPrinter implements Printer {
     private final Collection<ControlSequence> controlSequences;
 	private final Collection<ControlSequence> postControlSequences;
     private final Bitmap bitmap;
-	private final int printerWidth;
+	private final int maxWidth;
 	private final int luminanceThreshold;
 
 	private RasterPrinter(final List<ControlSequence> controlSequences, final List<ControlSequence> postControlSequences, final Bitmap bitmap, final int maxWidth, final int luminanceThreshold) {
         this.controlSequences = Collections.unmodifiableCollection( controlSequences );
-		this.postControlSequences = Collections.unmodifiableCollection( controlSequences );
+		this.postControlSequences = Collections.unmodifiableCollection( postControlSequences );
         this.bitmap = bitmap;
-		this.printerWidth = maxWidth;
+		this.maxWidth = maxWidth;
 		this.luminanceThreshold = luminanceThreshold;
     }
 
@@ -68,7 +67,6 @@ class RasterPrinter implements Printer {
 				int  green = Color.green(color);
 				int  blue = Color.blue(color);
 				int luminance = (int)(red * 0.3 + green * 0.59 + blue * 0.11);
-				//dots[index] = (luminance < threshold);
 				imageBitsData.set(index, (luminance < luminanceThreshold));
 				index++;
 			}
@@ -85,11 +83,11 @@ class RasterPrinter implements Printer {
 		int lines = verticalBytes / 3;
 
 		int lineBytes;
-		if ( controlSequences.contains(Buffer.PAGE_MODE) ) {
-			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.LINE_FEED_24.getCommand().length + Print.LINE_FEED_24.getCommand().length;
+		if ( controlSequences.contains(Page.PAGE_MODE) ) {
+			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + RasterPrint.LINE_FEED_24.getCommand().length + RasterPrint.LINE_FEED_24.getCommand().length;
 
 		} else {
-			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + Print.LINE_FEED_24.getCommand().length;
+			lineBytes = RasterPrint.BIT_IMAGE_MODE.getCommand().length + 2 + (width * 3) + RasterPrint.LINE_FEED_24.getCommand().length;
 		}
 
 		return lineBytes * ( lines + 1 );
@@ -101,7 +99,7 @@ class RasterPrinter implements Printer {
 		int width = bitmap.getWidth();
 
 		// Bitmaps wider than the printer width are ignored (instead of sending bad data to the device)
-		if ( width > printerWidth) return new byte[0];
+		if ( width > maxWidth) return new byte[0];
 
 		byte widthLSB = (byte)(width & 0xFF);
 		byte widthMSB = (byte)((width >> 8) & 0xFF);
@@ -163,18 +161,16 @@ class RasterPrinter implements Printer {
 
 			buffer.put(imageDataLine);
 			offset += 24;
-			buffer.put( Print.LINE_FEED_24.getCommand() );
-			if ( controlSequences.contains(Buffer.PAGE_MODE) ) buffer.put( Print.LINE_FEED_24.getCommand() );
+			buffer.put( RasterPrint.LINE_FEED_24.getCommand() );
+			if ( controlSequences.contains(Page.PAGE_MODE) ) buffer.put( RasterPrint.LINE_FEED_24.getCommand() );
 		}
 
 		return buffer.array();
 	}
 
     protected byte[] print( final Bitmap bitmap ) {
-		// Truncate bitmap (if necessary)
 		byte[] dataBytes = toBytes( bitmap );
 
-	    // get message size
 		int messageSize = dataBytes.length;
 
         for ( final ControlSequence controlSequence : controlSequences ) {
@@ -185,17 +181,14 @@ class RasterPrinter implements Printer {
 			messageSize += postControlSequence.getCommand().length;
 		}
 
-		// create a buffer from message size
         final ByteBuffer buffer = ByteBuffer.allocate( messageSize );
 
-		// put the instructions
         for ( final ControlSequence controlSequence : controlSequences ) {
             buffer.put( controlSequence.getCommand() );
         }
 
 		buffer.put( dataBytes );
 
-		// put the instructions
 		for ( final ControlSequence postControlSequence : postControlSequences ) {
 			buffer.put( postControlSequence.getCommand() );
 		}

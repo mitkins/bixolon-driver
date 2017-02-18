@@ -17,6 +17,8 @@ import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 import hr.istratech.bixolon.driver.charset.ByteCharset;
 import hr.istratech.bixolon.driver.command.general.Alignment;
+import hr.istratech.bixolon.driver.command.general.Page;
+import hr.istratech.bixolon.driver.command.print.Print;
 import hr.istratech.bixolon.driver.command.print.*;
 import hr.istratech.bixolon.driver.command.qr.QrCodeErrorCorrectionLevel;
 import hr.istratech.bixolon.driver.command.qr.QrCodeModel;
@@ -37,7 +39,7 @@ public class BluetoothBixolonActivity extends Activity {
 
     private static final String TAG = "BluetoothActivity";
     public static final String NEW_LINE = "\r\n";
-    public static final int PRINTER_WIDTH = 384;
+    public static final int MAX_WIDTH = 384;
 
     private Button connectButton;
 
@@ -368,10 +370,10 @@ public class BluetoothBixolonActivity extends Activity {
 
         final Printer printer = RasterPrinterBuilder
             .aPrinterBuilder()
-            .withControlSequences( Buffer.CLEAR_BUFFER)
+            .withGeneralControlSequence( Page.CLEAR_BUFFER)
             .withGeneralControlSequence( Alignment.CENTER )
             .postControlSequences( Print.FORM_FEED )
-            .buildPrinter( bm, false, PRINTER_WIDTH );
+            .buildPrinter( bm, MAX_WIDTH);
 
         bluetoothSPP.send( printer.getCommand(), false );
     }

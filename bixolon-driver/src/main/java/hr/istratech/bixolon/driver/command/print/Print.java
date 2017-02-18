@@ -17,7 +17,6 @@ public enum Print implements TextControlSequence {
     RECEIPT_MODE( new byte[]{(byte)8, (byte)76, (byte)82} ),
 
     PRINT_LINE_FEED( new byte[]{(byte) 10} ),
-    LINE_FEED_24( new byte[]{(byte)27, (byte)74, (byte)24} ),
     FORM_FEED( new byte[]{(byte)12} ),
 
     // For when you want to conditionally send a print command
